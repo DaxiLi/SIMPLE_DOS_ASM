@@ -1,16 +1,15 @@
 ;Description: 
-;Author: Yuan Jie
-;LastEdit: moogila@outlook.com
-;LastEditTime: 2021-09-10 13:06:01
-;FileName: J1s26.asm
-
 ;26、编写子程序，把以‘$’结尾的字符串输出显示（有无入口参数？需要用循环实现）。
-
 ;27、综合实验5中子函数，完成如下操作：
 ; （1）用提示信息提示用户输入8个数，每个数输入后换行，在下一行输入下一个数；
 ; （2）输入后在新的一行显示这8个数；
 ; （3）然后对这8个数排序；
 ; （4）在新的一行显示排序后的8个数。
+;Author: Yuan Jie
+;LastEdit: moogila@outlook.com
+;LastEditTime: 2021-09-10 13:06:01
+;FileName: J1s26.asm
+
 
 
 ;========== Q ======
@@ -67,6 +66,8 @@
     STR5 BYTE 'PLEASE INPUT %d NUMBERS(END WITH ENTER):',0Ah,'$'
     ; NUMARRAY WORD 8 DUP(0)
     NUMARRAY WORD  'B','A','C','F','E','G','D','E'
+
+    ; =============  TEST DATA ==============
     PRTFSTR BYTE 'TEST %d PL',0AH,0
     strbxl BYTE " ($"
     strbxr BYTE ") $"
