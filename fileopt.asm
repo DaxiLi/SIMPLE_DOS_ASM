@@ -60,7 +60,6 @@ int 21h
 ; DX: (偏移量）     SP + 6
 ; 缓存地址          SP + 8
 openfile:
-
         PUSH BP
         mov BP,SP
         add BP,2                    ; AT FILENAME
@@ -70,24 +69,24 @@ openfile:
         PUSH BX
         PUSH AX
 
-        ; ============== OPEN FILE
+        ; ============== OPEN FILE ================
         MOV AH,3DH
         MOV DX,[BP]
         MOV AL,0                    ; open attribute: 0 - read-only, 1 - write-only, 2 -read&write 
-        INT 21H                     ; If file exists, it’s handle is returned in AX, ff file doesn’t exist Carry Flag is set. Now we can read from our file:
-        jc .openfilefail
+        INT 21H                     ; If file exists, it’s handle is returned in AX, if file doesn’t exist Carry Flag is set. Now we can read from our file:
+        jc .openfilefail 
         MOV [FILE_HANDLE],AX
 
-        ; ============== SET PTR OF FILE
+        ; ============== SET PTR OFFSET OF FILE ===
         MOV AH,42H
         MOV BX,[FILE_HANDLE]
         MOV CX,[BP + 4]
         MOV DX,[BP + 6]             ; CX:DX : 位移量
         MOV AL,0                    ; 从文件头开始
-        int 21H                     ; 如果成功，DX:AX=新文件指针位置
+        int 21H                     ; 如果成功，DX:AX= 新文件指针位置
         jc .movoffsetfail
 
-        ; ============== READ FROM FILE
+        ; ============== READ FROM FILE ===========
         MOV AH,3FH
         MOV BX,[FILE_HANDLE]        ; HANDLE
         MOV CX,[BP + 2]             ; 读取字节数
