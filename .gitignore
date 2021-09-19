@@ -3,4 +3,5 @@
 *.exe
 *.lst
 *.sbr
+*.id
 *.id[1-9]
