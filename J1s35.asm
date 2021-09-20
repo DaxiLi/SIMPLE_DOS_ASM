@@ -1,3 +1,11 @@
+; /*
+;  * ;Description: 屏幕上输出点阵汉字,
+;  * ;Author: Yuan Jie
+;  * ;Data: 
+;  * ;LastEdit: moogila@outlook.com
+;  * ;LastEditTime: 2021-09-19 10:35:11
+;  * ;FileName: 
+;  */
 ; .486
 ; include ".\CHS16"
 .model small

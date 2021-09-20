@@ -1,3 +1,11 @@
+; /*
+;  * ;Description: DOS 文件创建读取写入
+;  * ;Author: Yuan Jie
+;  * ;Data: 
+;  * ;LastEdit: moogila@outlook.com
+;  * ;LastEditTime: 2021-09-19 10:36:30
+;  * ;FileName: 
+;  */
 
 .MODEL SMALL
 .STACK 100H

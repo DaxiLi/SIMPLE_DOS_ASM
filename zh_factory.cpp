@@ -79,20 +79,24 @@ int main()
     //     printf("%x ",ZH_LIB[i]);
     // }
     infile.close();
-    ifstream ofile("CHS.asm",ios::out);
-    if (!ofile.is_open())
-    {
-        cout << "openfile failed!";
-        return 0;
-    }
-    ofile.write()
+    // ifstream ofile("CHS.asm",ios::out);
+    // if (!ofile.is_open())
+    // {
+    //     cout << "openfile failed!";
+    //     return 0;
+    // }
+    // ofile.write()
 
     while (1)
     {
         cout << "pls input:";
         cin >> ZH;
+        ZH = "我";
         const char* str = ZH.c_str();
-        unsigned int tmp = (unsigned char)str[1] - 0xA1 + 94 * ((unsigned char)str[0] - 0xB0) + 15 * 94;
+        char a = str[0],b = str[1];
+        printf("ol : %ud %ud",a,b);
+        // cout << "data:" << (uint8_t)str[0] << " : "<< (uint8_t)str[1] <<endl;
+        unsigned int tmp = (unsigned char)str[1] - 0xA1 + 94 * ((unsigned char)str[0] - 0xa1);
         unsigned int ofst = tmp * 32;
         // cout << " " << ofst <<endl;
         char *bp = ZH_LIB + ofst;
