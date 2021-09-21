@@ -1,108 +1,225 @@
 ; /*
-;  * ;Description: DOS 文件读取 函数
+;  * ;Description: 输出目录,打开输入的目录并显示当中的中文文字
+;               要求 GBK 编码,且不含半角字符.
 ;  * ;Author: Yuan Jie
 ;  * ;Data: 
 ;  * ;LastEdit: moogila@outlook.com
-;  * ;LastEditTime: 2021-09-19 10:35:51
+;  * ;LastEditTime: 2021-09-21 13:02:26
 ;  * ;FileName: 
 ;  */
+
 .model small
 
 .data
-DOSFILE_TMP db "hello world",20 dup(0),'$'
-DOSFILENAME db "DOS.asm",0
-; FILE_HANDLE word 2 dup(0)
-FILE_TMP word 'h',200 dup(0),'$'
-TEXTFILE word 'tp',200 dup(0)
-TEST_FILE_NAME word 'fn',61 dup(0)
-.stack
+    TIP_PATH_INPUT DB "pls input a file name:",0ah,'$',0
+    FILE_OPEN_FAIL DB "open file fail(main)",0ah,'$','0'
+    FILE_PATH BYTE 'README.txt',61 dup(0),0,'$'   
+    READ_FILE_BUF DB 2047 dup(0),0
+    WORD_MODEL_BUF DB 32 dup(0)
+    FLAG DB 0
 
+.stack 
 .code
 
+FILE_BUF_SIZE equ 2048
+
+; ============== 真他奶奶的邪门，绝了，不能打开文件报错。哪怕把那个程序复制到这个文件里面，也不行，可是文件都在一个目录下，并没有什么不同在另一个文件里面可以 include ，在这个文件里面写代码 include 
+; ~~似乎要先  cd 到当前目录 DOSBOX 才会把文件都复制过去，，，，晕。。~~
+; DOSBOX 的复制逻辑成谜！
+; 经过我细心调试，现在没法 include 了
 ; include JLIB.asm
 
 .startup
-; =================================== NOTE ========================
-; CALL NEAR FAR
-; CALL 的时候,如果是 FAR ,会压入 CS 和 IP,但是在 ret 返回时,只会自动弹出一个
-; 所以,,按道理不应该
-; 所以,得手动 sp 加 2
-
-; ============================== TEST===========
-; ===================== 一些常数 和 参数 的宏定义 ==================
-
-
-
-
-
-; ================== TEST END======================
-
-
-
-
-mov BX,0ced2h
-MOV BX,0D5E2h  ; 这
-lea ax,FILE_TMP
-call loadwordmodel
-
-
-
-
-
-
-
-
-
-lea SI,FILE_TMP
-MOV CX,32d
-lab1:
-    xor ah,ah
-    mov al,[si]
-    call PRINT_NUM_HEX
-    inc si
-    mov ah,02
-    mov dl,':'
+    MOV ah,09h
+    lea dx,TIP_PATH_INPUT
     int 21h
-    loop lab1
 
-call SETDISPLAYMOD
-    ; EACH_LINE_WORDS equ SCREEN_WIDTH/(WORD_WIDTH + WORD_SAPCE)
-call cls
-mov cx,23
-xor bx,bx
-lea ax,FILE_TMP
-put:
-; add ax,32
-call puts
-inc bl
-cmp bl,EACH_LINE_WORDS
-jnb break11
-loop put
-break11:
+    lea BX,FILE_PATH
+    MOV CX,61
+    MOV AH,01
 
-mov ah,01
-int 21h
+    ; .inputpath:
+    ; int 21H
+    ; cmp AL,0dh
+    ; jz .iptbreak
+    ; mov [bx],al
+    ; inc bx
+    ; loop .inputpath
+    ; .iptbreak:
 
-; lea dx,FILE_TMP
-; mov ah,09h
-; int 21h
+    
+    ; ==== READ FROM FILE 
+    LEA AX,READ_FILE_BUF
+    PUSH AX
 
-; lea ax,FILE_TMP
-; push ax
-; lea ax,DOSFILENAME
-; mov bx,15
-; xor cx,cx
-; mov dx,0
+    XOR AX,AX
+    PUSH AX
+
+    PUSH AX
+
+    MOV AX,FILE_BUF_SIZE
+    PUSH AX
+
+    LEA AX,FILE_PATH
+    PUSH AX
+
+    MOV Bp,SP
+
+    call openfile
+    cmp AX,-1
+    jnz .readoptfinished
+    ; .readoptfail:
+    ; MOV AH,09
+    ; LEA DX,FILE_OPEN_FAIL
+    ; int 21h
+    ; .exit 0
+;********* ERROR CODE ***********
+    ; MOV CX,2d
+    ; XOR DX,DX
+    ; MOV BX,2d     ; 先一次读取 2 字节
+    ; LEA BP,READ_FILE_BUF
+    ; .readtxtfile:
+    ; PUSH AX
+    ; PUSH DX
+    ; PUSH DX
+    ; PUSH BX
+    ; LEA AX,FILE_PATH
+    ; PUSH AX
+    
+    ; MOV BP,SP
+    ; call openfile
+    ; test AX,AX
+    ; jz .fileEOF
+    ; cmp AX,-1
+    ; jz .readoptfail
+
+    ; add BP,2
+
+    ; loop .readtxtfile
+    ; jmp .fileEOF
+
+    ; .readoptfail:
+    ; MOV AH,09
+    ; LEA DX,FILE_OPEN_FAIL
+    ; int 21h
+    ; .exit 0
+
+    ; .fileEOF:
+;  .readoptfinished:
+;********* ERROR CODE ***********
+
+
+ ; ================= TEST==========
+
+; lea SI,READ_FILE_BUF
+; MOV CX,32d
+; lab1:
+;     xor ah,ah
+;     mov al,[si]
+;     call PRINT_NUM_HEX
+;     inc si
+;     mov ah,02
+;     mov dl,':'
+;     int 21h
+;     loop lab1
+
+    ; mov ah,01
+    ; int 21h
+
+ ; ============== TEST END========
+
+
+    LEA AX,READ_FILE_BUF
+    ; ADD AX,EACH_LINE_WORDS * 2
+    call refreshwords   
 
 
 
-
-
+    MOV AH,01
+    int 21h
 
 .exit 0
 
+; 将 ax 地址处的字符串刷新到屏幕上，
+; 0,0 开始,自动换行
+; 遇到 0 截止
+refreshwords:
+    PUSH BP
+    PUSH DX
+    PUSH CX
+    PUSH BX
+    PUSH AX
 
-LOADTEXT:
+    MOV BP,AX                   ; 字符串地址
+    xor bx,bx                   ; 0 row 0 col
+
+    call SETDISPLAYMOD          ; 设置显示模式
+    call CLS                    ; CLS
+
+.wput:
+    XOR DX,DX
+    MOV DX,[BP]                 ; 将字符读入 DX
+    XCHG DH,DL
+
+.checkword:
+    test DX,DX                  ; 0 截止
+    jz .wbreak 
+
+    CMP DX,0D0ah
+    JZ .IS_R_N                  ; 换行符 两个
+
+    cmp bl,EACH_LINE_WORDS      ; 是否行末
+    jnb .IS_END_OF_LINE             
+    
+    cmp bh,EACH_SCREEN_LINES
+    jnbe .wbreak                ; 屏幕写满,结束
+
+    CMP DH,20H                  ;空格
+    JZ .IS_SPACE
+    
+    ; default case
+    jmp .writescreen            ; 不匹配,则直接写
+   
+.checkopts:
+
+.IS_R_N:
+    inc BH
+    xor bl,bl                   ; 换行
+    jmp .wcontinue              ; 继续下一个字符
+
+.IS_END_OF_LINE:   
+    inc BH
+    xor bl,bl                   ; 换行
+    JMP .checkword            ; 换行后 需检查是否写满
+
+.IS_SPACE:
+    DEC BP                      ; 空格可只占一个字节,防止出现单字节空格导致乱码
+    MOV DX,0202H                  ;  所以把情况统一成单字节处理
+    JMP .writescreen            ;   BP 减一,以平衡数据
+
+.writescreen:
+    lea AX,WORD_MODEL_BUF
+    XCHG BX,CX
+    MOV BX,DX
+    call loadwordmodel
+    XCHG BX,CX
+    lea AX,WORD_MODEL_BUF
+    call PUTS
+
+.wcontinue:
+    ADD BP,2
+    INC BL
+
+    jmp .wput
+.wbreak:
+
+    POP AX
+    POP BX
+    POP CX
+    POP DX
+    POP BP
+
+    ret
 
 .DATA
 
@@ -142,6 +259,7 @@ STR_READFILE_FAIL db "can not read file",13,'$',0
     WORD_WIDTH equ 16d
     WORD_HEIGHT equ 16d
     EACH_LINE_WORDS equ (SCREEN_WIDTH - PADDING - PADDING)/(WORD_WIDTH + WORD_SAPCE)
+    EACH_SCREEN_LINES equ (SCREEN_HEIGHT - PADDING)/(WORD_HEIGHT + LINE_SPACE)
 
     FONT_COLOR equ GREEN
     BACKGROUND_COLOR equ BLACK
@@ -744,7 +862,7 @@ openfile:
         MOV CX,[BP + 2]             ; 读取字节数
         MOV DX,[BP + 8]             ; 缓存地址
         int 21H
-        MOV BX,AX
+        MOV AX,BX
         jc .readfilefail
 
         MOV AH,3EH
@@ -757,22 +875,24 @@ openfile:
         lea dx,STR_MOVOFFSET_FAIL
         mov ah,09h
         int 21h
+        MOV AX,-1
         jmp .openfilereturn
 
     .openfilefail:
         lea dx,STR_OPENFILE_FAIL
         mov ah,09h
         int 21h
+        MOV AX,-1
         jmp .openfilereturn
     .readfilefail:
         lea dx,STR_READFILE_FAIL
         mov ah,09h
         int 21h
+        MOV AX,-1
         jmp .openfilereturn
 
     .openfilereturn:
     ; POP AX
-    MOV AX,BX
     POP BX
     POP CX
     POP DX

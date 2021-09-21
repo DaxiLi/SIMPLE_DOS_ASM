@@ -1,109 +1,3 @@
-; /*
-;  * ;Description: DOS 文件读取 函数
-;  * ;Author: Yuan Jie
-;  * ;Data: 
-;  * ;LastEdit: moogila@outlook.com
-;  * ;LastEditTime: 2021-09-19 10:35:51
-;  * ;FileName: 
-;  */
-.model small
-
-.data
-DOSFILE_TMP db "hello world",20 dup(0),'$'
-DOSFILENAME db "DOS.asm",0
-; FILE_HANDLE word 2 dup(0)
-FILE_TMP word 'h',200 dup(0),'$'
-TEXTFILE word 'tp',200 dup(0)
-TEST_FILE_NAME word 'fn',61 dup(0)
-.stack
-
-.code
-
-; include JLIB.asm
-
-.startup
-; =================================== NOTE ========================
-; CALL NEAR FAR
-; CALL 的时候,如果是 FAR ,会压入 CS 和 IP,但是在 ret 返回时,只会自动弹出一个
-; 所以,,按道理不应该
-; 所以,得手动 sp 加 2
-
-; ============================== TEST===========
-; ===================== 一些常数 和 参数 的宏定义 ==================
-
-
-
-
-
-; ================== TEST END======================
-
-
-
-
-mov BX,0ced2h
-MOV BX,0D5E2h  ; 这
-lea ax,FILE_TMP
-call loadwordmodel
-
-
-
-
-
-
-
-
-
-lea SI,FILE_TMP
-MOV CX,32d
-lab1:
-    xor ah,ah
-    mov al,[si]
-    call PRINT_NUM_HEX
-    inc si
-    mov ah,02
-    mov dl,':'
-    int 21h
-    loop lab1
-
-call SETDISPLAYMOD
-    ; EACH_LINE_WORDS equ SCREEN_WIDTH/(WORD_WIDTH + WORD_SAPCE)
-call cls
-mov cx,23
-xor bx,bx
-lea ax,FILE_TMP
-put:
-; add ax,32
-call puts
-inc bl
-cmp bl,EACH_LINE_WORDS
-jnb break11
-loop put
-break11:
-
-mov ah,01
-int 21h
-
-; lea dx,FILE_TMP
-; mov ah,09h
-; int 21h
-
-; lea ax,FILE_TMP
-; push ax
-; lea ax,DOSFILENAME
-; mov bx,15
-; xor cx,cx
-; mov dx,0
-
-
-
-
-
-
-.exit 0
-
-
-LOADTEXT:
-
 .DATA
 
 FILE_HANDLE word 2 dup(0)
@@ -142,6 +36,7 @@ STR_READFILE_FAIL db "can not read file",13,'$',0
     WORD_WIDTH equ 16d
     WORD_HEIGHT equ 16d
     EACH_LINE_WORDS equ (SCREEN_WIDTH - PADDING - PADDING)/(WORD_WIDTH + WORD_SAPCE)
+    EACH_SCREEN_LINES equ (SCREEN_HEIGHT - PADDING)/(WORD_HEIGHT + LINE_SPACE)
 
     FONT_COLOR equ GREEN
     BACKGROUND_COLOR equ BLACK
@@ -706,7 +601,9 @@ calOffsetZH:
 ; CX:（DX）,偏移量  SP + 4
 ; DX: (偏移量）     SP + 6
 ; 缓存地址          SP + 8
+; BP 栈顶指针
 ; 返回 读取字节数 0 到达末尾
+; -1 出错，失败
 openfile:
         ; PUSH BP
         ; mov BP,SP
@@ -744,35 +641,38 @@ openfile:
         MOV CX,[BP + 2]             ; 读取字节数
         MOV DX,[BP + 8]             ; 缓存地址
         int 21H
-        MOV BX,AX
+        MOV AX,BX
         jc .readfilefail
 
         MOV AH,3EH
         MOV DX,[FILE_HANDLE]                                     ;CLOSE
         INT 21H  
 
+        MOV AX,BX
         jmp .openfilereturn
         
     .movoffsetfail:
         lea dx,STR_MOVOFFSET_FAIL
         mov ah,09h
         int 21h
+        MOV AX,-1
         jmp .openfilereturn
 
     .openfilefail:
         lea dx,STR_OPENFILE_FAIL
         mov ah,09h
         int 21h
+        MOV AX,-1
         jmp .openfilereturn
     .readfilefail:
         lea dx,STR_READFILE_FAIL
         mov ah,09h
         int 21h
+        MOV AX,-1
         jmp .openfilereturn
 
     .openfilereturn:
     ; POP AX
-    MOV AX,BX
     POP BX
     POP CX
     POP DX
@@ -819,5 +719,3 @@ PRINT_NUM_HEX:
         POP AX
         RET
 
-
-end
