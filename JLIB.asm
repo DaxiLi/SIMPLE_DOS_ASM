@@ -1,3 +1,4 @@
+
 .DATA
 
 FILE_HANDLE word 2 dup(0)
@@ -36,9 +37,11 @@ STR_READFILE_FAIL db "can not read file",13,'$',0
     WORD_WIDTH equ 16d
     WORD_HEIGHT equ 16d
     EACH_LINE_WORDS equ (SCREEN_WIDTH - PADDING - PADDING)/(WORD_WIDTH + WORD_SAPCE)
+    EACH_SCREEN_LINES equ (SCREEN_HEIGHT - PADDING)/(WORD_HEIGHT + LINE_SPACE)
 
     FONT_COLOR equ GREEN
-    BACKGROUND_COLOR equ BLACK
+    BACKGROUND_COLOR equ BLUE
+    CLS_COLOR equ BLUE
 
 
 ; AX 缓存地址
@@ -412,7 +415,7 @@ CLS:
     push bx
 
     mov ax,0600h
-    mov bh,RED            ; BH 屏幕初始化颜色
+    mov bh,CLS_COLOR            ; BH 屏幕初始化颜色
     mov cx,0
     mov dx,0184fh
     int 10h
@@ -638,7 +641,7 @@ openfile:
         MOV CX,[BP + 2]             ; 读取字节数
         MOV DX,[BP + 8]             ; 缓存地址
         int 21H
-        MOV BX,AX
+        MOV AX,BX
         jc .readfilefail
 
         MOV AH,3EH
@@ -651,22 +654,24 @@ openfile:
         lea dx,STR_MOVOFFSET_FAIL
         mov ah,09h
         int 21h
+        MOV AX,-1
         jmp .openfilereturn
 
     .openfilefail:
         lea dx,STR_OPENFILE_FAIL
         mov ah,09h
         int 21h
+        MOV AX,-1
         jmp .openfilereturn
     .readfilefail:
         lea dx,STR_READFILE_FAIL
         mov ah,09h
         int 21h
+        MOV AX,-1
         jmp .openfilereturn
 
     .openfilereturn:
     ; POP AX
-    MOV AX,BX
     POP BX
     POP CX
     POP DX
@@ -712,4 +717,3 @@ PRINT_NUM_HEX:
         POP BX
         POP AX
         RET
-
