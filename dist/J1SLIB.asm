@@ -1,4 +1,3 @@
-
 .DATA
 
 FILE_HANDLE word 2 dup(0)
@@ -40,8 +39,7 @@ STR_READFILE_FAIL db "can not read file",13,'$',0
     EACH_SCREEN_LINES equ (SCREEN_HEIGHT - PADDING)/(WORD_HEIGHT + LINE_SPACE)
 
     FONT_COLOR equ GREEN
-    BACKGROUND_COLOR equ BLUE
-    CLS_COLOR equ BLUE
+    BACKGROUND_COLOR equ BLACK
 
 
 ; AX 缓存地址
@@ -415,7 +413,7 @@ CLS:
     push bx
 
     mov ax,0600h
-    mov bh,CLS_COLOR            ; BH 屏幕初始化颜色
+    mov bh,RED            ; BH 屏幕初始化颜色
     mov cx,0
     mov dx,0184fh
     int 10h
@@ -603,7 +601,9 @@ calOffsetZH:
 ; CX:（DX）,偏移量  SP + 4
 ; DX: (偏移量）     SP + 6
 ; 缓存地址          SP + 8
+; BP 栈顶指针
 ; 返回 读取字节数 0 到达末尾
+; -1 出错，失败
 openfile:
         ; PUSH BP
         ; mov BP,SP
@@ -648,6 +648,7 @@ openfile:
         MOV DX,[FILE_HANDLE]                                     ;CLOSE
         INT 21H  
 
+        MOV AX,BX
         jmp .openfilereturn
         
     .movoffsetfail:
@@ -717,3 +718,4 @@ PRINT_NUM_HEX:
         POP BX
         POP AX
         RET
+

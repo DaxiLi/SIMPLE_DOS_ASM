@@ -11,8 +11,8 @@
 .model small
 
 .data
-    TIP_PATH_INPUT DB "pls input a file name:",0ah,'$',0
-    FILE_OPEN_FAIL DB "open file fail(main)",0ah,'$','0'
+    TIP_PATH_INPUT DB "pls input a file name:",13,0ah,'$',0
+    FILE_OPEN_FAIL DB "open file fail(main)",0ah,13,'$','0'
     FILE_PATH BYTE 'README.txt',61 dup(0),0,'$'   
 
     READ_FILE_BUF DB 2047 dup(0),0
@@ -32,7 +32,7 @@ FILE_BUF_SIZE equ 2048
 ; ~~似乎要先  cd 到当前目录 DOSBOX 才会把文件都复制过去，，，，晕。。~~
 ; DOSBOX 的复制逻辑成谜！
 ; 经过我细心调试，现在没法 include 了
-include JLIB.asm
+include J1SLIB.asm
 
 .startup
     MOV ah,09h
@@ -43,14 +43,14 @@ include JLIB.asm
     MOV CX,61
     MOV AH,01
 
-    ; .inputpath:
-    ; int 21H
-    ; cmp AL,0dh
-    ; jz .iptbreak
-    ; mov [bx],al
-    ; inc bx
-    ; loop .inputpath
-    ; .iptbreak:
+    .inputpath:
+    int 21H
+    cmp AL,0dh
+    jz .iptbreak
+    mov [bx],al
+    inc bx
+    loop .inputpath
+    .iptbreak:
 
     
     ; ==== READ FROM FILE 
@@ -171,6 +171,8 @@ include JLIB.asm
 
     .keyQ:
     call CLS
+    mov ax,0003h
+    int 10h
     jmp .mainExit
 
     jmp .checkKeyAction

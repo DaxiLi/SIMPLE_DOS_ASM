@@ -40,6 +40,7 @@ STR_READFILE_FAIL db "can not read file",13,'$',0
 
     FONT_COLOR equ GREEN
     BACKGROUND_COLOR equ BLACK
+    CLS_COLOR equ BACKGROUND_COLOR
 
 
 ; AX 缓存地址
@@ -413,7 +414,7 @@ CLS:
     push bx
 
     mov ax,0600h
-    mov bh,RED            ; BH 屏幕初始化颜色
+    mov bh,CLS_COLOR            ; BH 屏幕初始化颜色
     mov cx,0
     mov dx,0184fh
     int 10h

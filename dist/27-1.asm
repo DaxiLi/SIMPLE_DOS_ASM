@@ -1,10 +1,12 @@
 ;Description: 
+; =====================================================================
 ;26、编写子程序，把以‘$’结尾的字符串输出显示（有无入口参数？需要用循环实现）。
 ;27、综合实验5中子函数，完成如下操作：
 ; （1）用提示信息提示用户输入8个数，每个数输入后换行，在下一行输入下一个数；
 ; （2）输入后在新的一行显示这8个数；
 ; （3）然后对这8个数排序；
 ; （4）在新的一行显示排序后的8个数。
+
 ;Author: Yuan Jie
 ;LastEdit: moogila@outlook.com
 ;LastEditTime: 2021-09-10 13:06:01
@@ -12,50 +14,6 @@
 
 
 
-;========== Q ======
-; 短类型转移  长类型转移 
-;
-; 寻址方式错误
-; MASM 变址寻址方式
-; 书中范例:
-; 1. mov edi,[ebx + esi]
-;    mov edi,[ebx + edx + 80h]
-;    mov eax,[ebx][esi]
-;    mov wax,80h[ebx + eax] 
-;    mov eax,80h[ebx][eax]
-;
-;   但在实际 DOS MASM 中使用 mov ax,[si + dx] 寻址错误 A2031
-;       使用 mov ax,[si + bx] 则不会报错
-;   微软解释:
-;       must be index or base register
-;       An attempt was made to use a register that was not a base or index register in a memory expression.
-;   解释及解答:
-;       在 32 位处理器上 才可以通过:
-;                基址寄存器(8个寄存器) + 变址寄存器(除ESP外的7个寄存器) * 比例 + 位移量
-;           寻址
-;       在 16 位处理器 只能使用:
-;                基址寄存器(BX , BP) + 变址寄存器(SI , DI) + 位移量
-;   在 DOS 环境下 使用 IA32 的寻址方式 会报错 error A2032 或 error A2031
-
-
-
-;==========   NOTE ==== ===== 
-; 1. AX 寄存器的值常常莫名改变
-;   例如在 函数返回后 ,使用 AX 传送返回值
-;   向 DX ???\\ BX 传送值
-;   疑似 DEBUG 时 错误使用 N 指令导致
-;   
-; 2. 在 DIV CX 指令前,如果不xor dx,dx 程序会卡住
-;
-; 3.寻址是INC SI 只加 1 , 而 DWORD 是 16 位 ,是两个字节 ,所以需要 +2 
-;
-; 4. 寻址不可直接 [SI + BX + CX] 这样使用
-;
-;
-;=============  函数调用约定  =====
-;   参数从左到右使用 AX , BX , CX , DX 传入
-;   更多参数从右至左压入堆栈
-;
 
 .MODEL SMALL
 .DATA
@@ -69,132 +27,11 @@
     ; NUMARRAY WORD 8 DUP(0)
     NUMARRAY WORD  'B','A','C','F','E','G','D','E'
 
-    ; =============  TEST DATA ==============
-    PRTFSTR BYTE 'TEST %d PL',0AH,0
-    strbxl BYTE " ($"
-    strbxr BYTE ") $"
-    strspl BYTE " [$"
-    strspr BYTE "] $"
-    strHEX BYTE '%x'
-    strBIN BYTE '%b'
-    strDEC BYTE '%d'
-
 .STACK
 .CODE 
 ;write your code here
 .STARTUP
 
-
-    MOV AX,0FFFFh
-    call PRINT_SNUM_D
-
-    MOV AX,1
-    call PRINT_SNUM_D
-
-    ;================== TEST CODE ========
-
-    ; MOV AX,3
-    ; call PRINT_NUM_BIN
-
-;     mov ax,408d
-;     mov bx,10d
-;     mul bl
-;     call PROC_PRINT_NUM
-
-
-;         XOR DX,DX        ; 存储已输入值
-;         MOV BX,10D
-;     PGN_LOOP:
-;         MOV AH,01
-;         INT 21H
-;         CMP AL,0DH
-;         JZ PGN_END      ; 输入为 \n 则结束
-;         AND AX,00FFH    ; 将 AH 值置零
-;         SUB AL,'0'      ;
-;         XCHG AX,DX      ; 将值交换 , 以做乘法
-;         MUL BX          
-;         ADD AX,DX       ; x10 后将个位加上
-;         XCHG AX,DX      ; 换回来
-;         JMP PGN_LOOP    ; 继续输入
-;     PGN_END:
-;         MOV AX,DX       ; 将值放入 AX 返回
-
-;     mov bx,ax
-;     call printbx
-; .EXIT 0 
-    ; mov ax,1
-    ; push ax         ; 1
-    ; inc ax
-    ; push ax     ;2
-    ; inc ax  
-    ; push ax     ;3
-    ; inc ax  
-    ; push ax     ; 4
-
-    ; pop bx
-    ; call printbx
-    ; sub sp,4
-    ; pop bx
-    ; call printbx
-    ; pop ax
-    ; pop ax
-    ; sub sp,4
-    ; pop ax
-    ; call PROC_PRINT_NUM
-    ; pop ax
-    ; call PROC_PRINT_NUM
-    ; pop ax
-    ; call PROC_PRINT_NUM
-    ; pop ax
-    ; call PROC_PRINT_NUM
-    
-    ; mov ax,bx
-    ; call PROC_PRINT_NUM
-
-    ; MOV AX,SP
-    ; CALL PRINT_NUM_HEX
-    
-    ; MOV BX,02H
-
-    ; ; call printbx
-    ; ; call printbx
-
-    ; LEA AX,PRTFSTR
-    
-    ; CALL PRINTF
-
-    ; call printbx
-
-    ; MOV AX,SP
-    ; CALL PRINT_NUM_HEX
-
-    ; CALL PROC_GET_NUM       ; IT IS WORKSn
-    ; CALL PROC_PRINT_NUM     ; WORK
-
-        ; LEA AX,NUMARRAY
-        ; MOV BX,8
-        ; MOV CX,BX
-        ; ADD CX,CX                           ; x2
-        ; MOV BP,AX                           ; 基址
-        ; PS_FORI:
-        ; MOV SI,CX                           ;  
-        ; MOV AX,[BP + SI - 2]                ; 将末尾值放入 AX 比较,避免多次读取内存 mov ax,array[array.length]
-        ; LEA DI,[BP + SI - 2]                ; 尾值地址
-        ;     PS_FORJ: 
-        ;     SUB SI,2
-        ;     CMP AX,[BP + SI - 2]                ; if array[array.length] < array[array.length - 1]
-        ;     JNB PS_NO_SWAP                      ; 无需交换
-        ;     XCHG AX,[BP + SI - 2]
-        ;     MOV [DI],AX
-        ;     PS_NO_SWAP:
-        ;     CMP SI ,3                       ; 到0 则结束
-        ;     JNB PS_FORJ
-        ; DEC CX                         ; 手动 -1 总共 -2
-        ; LOOP PS_FORI
-
-    ;============ TEST CODE END ==============
-
-    
     LEA AX,STR1                     ; "hello world"
     CALL PROC_PRINT_STRING          ; 输出 
     LEA AX,STR2                     ; "pls input A number"
@@ -246,34 +83,7 @@
                                     ; BX 明确未改变,故不重复赋值
     CALL PROC_PRINT_ARRAY
 
-
-
-
 .EXIT 0
-; print sp
-printsp:
-    push ax
-    lea ax,strspl
-    call PROC_PRINT_STRING
-    mov ax,sp
-    call PROC_PRINT_NUM
-    lea ax,strspr
-    call PROC_PRINT_STRING
-    pop ax
-    ret
-
-
-; print bx
-printbx:
-    push ax
-    lea ax,strbxl
-    call PROC_PRINT_STRING
-    mov ax,bx
-    call PROC_PRINT_NUM
-    lea ax,strbxr
-    call PROC_PRINT_STRING
-    pop ax
-    ret
 
 
 ; 实现类 c 语言 printf 的功能
@@ -441,27 +251,6 @@ PROC_PRINT_ARRAY:
     PPA_LOOP:
         MOV AX,[SI]
         CALL PROC_PRINT_NUM
-
-        ; MOV AH,02H
-        ; MOV DL,':'                  ; 以空格分割
-        ; INT 21H        
-
-        ; call PRINT_NUM_HEX
-
-        ; MOV AH,02H
-        ; MOV DL,'H'                  ; 以空格分割
-        ; INT 21H 
-
-        ; MOV AH,02H
-        ; MOV DL,':'                  ; 以空格分割
-        ; INT 21H        
-
-        ; call PRINT_NUM_BIN
-
-        ; MOV AH,02H
-        ; MOV DL,'B'                  ; 以空格分割
-        ; INT 21H 
-
         MOV AH,02H
         MOV DL,' '                  ; 以空格分割
         INT 21H
