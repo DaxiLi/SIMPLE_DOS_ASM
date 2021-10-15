@@ -38,6 +38,8 @@
 .CODE
 .STARTUP
     ; =====================  test
+
+    ; 这没啥好写的,还是看实验 38
     MOV AX,003H
     INT 10H         ; 设置显示模式 80x25 彩色
 
@@ -57,8 +59,6 @@
 
     MOV DX,0503H
     CALL SHOW_CHAR
-
-
 
 
 .EXIT 0

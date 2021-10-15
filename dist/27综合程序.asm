@@ -66,139 +66,36 @@
     STR5 BYTE 13,10,'PLEASE INPUT %d NUMBERS(END WITH ENTER):',13,0Ah,0,'$'
     STR6 BYTE 13,10,'BEFORE SORT, THE %d NUMBERS ARE(HEX):',13,0Ah,0,'$'
     STR7 BYTE 13,10,'BEFORE SORT, THE %d NUMBERS ARE(BIN):',13,0Ah,0,'$'
-    ; NUMARRAY WORD 8 DUP(0)
     NUMARRAY WORD  'B','A','C','F','E','G','D','E'
 
-    ; =============  TEST DATA ==============
-    PRTFSTR BYTE 'TEST %d PL',0AH,0
-    strbxl BYTE " ($"
-    strbxr BYTE ") $"
-    strspl BYTE " [$"
-    strspr BYTE "] $"
-    strHEX BYTE '%x'
-    strBIN BYTE '%b'
-    strDEC BYTE '%d'
 
 .STACK
 .CODE 
 ;write your code here
 .STARTUP
 
-
+    ; ============= 带符号 正负数输出 测试 =============
     MOV AX,0FFFFh
-    call PRINT_SNUM_D
+    call PRINT_SNUM_D               ; 输出 -1 带符号输出整形
+
+    ; ============ 输出换行回车 =====================
+    MOV DL,13d
+    INT 21H                         ; 输出换行符 \r
+    MOV AH,02
+    MOV DL,0ah
+    INT 21H                         ; 输出回车符 \n 
 
     MOV AX,1
-    call PRINT_SNUM_D
+    call PRINT_SNUM_D               ; 输出  1 正数 省略 + 
 
-    ;================== TEST CODE ========
-
-    ; MOV AX,3
-    ; call PRINT_NUM_BIN
-
-;     mov ax,408d
-;     mov bx,10d
-;     mul bl
-;     call PROC_PRINT_NUM
-
-
-;         XOR DX,DX        ; 存储已输入值
-;         MOV BX,10D
-;     PGN_LOOP:
-;         MOV AH,01
-;         INT 21H
-;         CMP AL,0DH
-;         JZ PGN_END      ; 输入为 \n 则结束
-;         AND AX,00FFH    ; 将 AH 值置零
-;         SUB AL,'0'      ;
-;         XCHG AX,DX      ; 将值交换 , 以做乘法
-;         MUL BX          
-;         ADD AX,DX       ; x10 后将个位加上
-;         XCHG AX,DX      ; 换回来
-;         JMP PGN_LOOP    ; 继续输入
-;     PGN_END:
-;         MOV AX,DX       ; 将值放入 AX 返回
-
-;     mov bx,ax
-;     call printbx
-; .EXIT 0 
-    ; mov ax,1
-    ; push ax         ; 1
-    ; inc ax
-    ; push ax     ;2
-    ; inc ax  
-    ; push ax     ;3
-    ; inc ax  
-    ; push ax     ; 4
-
-    ; pop bx
-    ; call printbx
-    ; sub sp,4
-    ; pop bx
-    ; call printbx
-    ; pop ax
-    ; pop ax
-    ; sub sp,4
-    ; pop ax
-    ; call PROC_PRINT_NUM
-    ; pop ax
-    ; call PROC_PRINT_NUM
-    ; pop ax
-    ; call PROC_PRINT_NUM
-    ; pop ax
-    ; call PROC_PRINT_NUM
-    
-    ; mov ax,bx
-    ; call PROC_PRINT_NUM
-
-    ; MOV AX,SP
-    ; CALL PRINT_NUM_HEX
-    
-    ; MOV BX,02H
-
-    ; ; call printbx
-    ; ; call printbx
-
-    ; LEA AX,PRTFSTR
-    
-    ; CALL PRINTF
-
-    ; call printbx
-
-    ; MOV AX,SP
-    ; CALL PRINT_NUM_HEX
-
-    ; CALL PROC_GET_NUM       ; IT IS WORKSn
-    ; CALL PROC_PRINT_NUM     ; WORK
-
-        ; LEA AX,NUMARRAY
-        ; MOV BX,8
-        ; MOV CX,BX
-        ; ADD CX,CX                           ; x2
-        ; MOV BP,AX                           ; 基址
-        ; PS_FORI:
-        ; MOV SI,CX                           ;  
-        ; MOV AX,[BP + SI - 2]                ; 将末尾值放入 AX 比较,避免多次读取内存 mov ax,array[array.length]
-        ; LEA DI,[BP + SI - 2]                ; 尾值地址
-        ;     PS_FORJ: 
-        ;     SUB SI,2
-        ;     CMP AX,[BP + SI - 2]                ; if array[array.length] < array[array.length - 1]
-        ;     JNB PS_NO_SWAP                      ; 无需交换
-        ;     XCHG AX,[BP + SI - 2]
-        ;     MOV [DI],AX
-        ;     PS_NO_SWAP:
-        ;     CMP SI ,3                       ; 到0 则结束
-        ;     JNB PS_FORJ
-        ; DEC CX                         ; 手动 -1 总共 -2
-        ; LOOP PS_FORI
-
-    ;============ TEST CODE END ==============
-
-    
+    ; =============== 把以‘$’结尾的字符串输出显示 ===========
     LEA AX,STR1                     ; "hello world"
     CALL PROC_PRINT_STRING          ; 输出 
+
+    ; =============== 输出 字符串 printf ==========
     LEA AX,STR2                     ; "pls input A number"
     CALL PRINTF         ; 
+
 
     CALL PROC_GET_NUM
 
@@ -209,12 +106,14 @@
     LEA AX,STR5                     ; "PLEASE INPUT %d NUMBERS(END WITH ENTER):"
     CALL PRINTF
 
+    ; ============== 循环输入数组 数字 ===================
     LEA SI,NUMARRAY                 ; 将数组地址加载至 SI
     INPUT_NUMS:
         CALL PROC_GET_NUM
         MOV [SI],AX                 ; 调用GET_NUM 读取一个值,并将值放入 SI 地址
         ADD SI,2                    ; 使用的 16 位 ,加 2
         LOOP INPUT_NUMS             ; 循环输入
+
     LEA AX,STR3                     ; "print "BEFORE SORT, THE 8 NUMBERS ARE:""
     CALL PRINTF                     ; 
     LEA AX,NUMARRAY                 ; 函数调用约定 传入数组地址
@@ -222,18 +121,19 @@
                                     ; BX 明确未改变,故不重复赋值
     CALL PROC_PRINT_ARRAY       
 
-        
+    ; =============== 16 进制 输出数组 =============
     LEA AX,STR6                ; HEX
     call PRINTF
     LEA AX,NUMARRAY
     call PROC_PRINT_ARRAY_HEX
 
+    ; ============== 2 进制输出数组 ==============
     LEA AX,STR7                 ; BIN
     call PRINTF
     LEA AX,NUMARRAY
     call PROC_PRINT_ARRAY_BIN
 
-
+    ; ================ 排序  =====================
     LEA AX,NUMARRAY                 ; 函数调用约定 传入数组地址
     ; MOV BX,8                        ; 传入数组长度
                                     ; BX 明确未改变,故不重复赋值
@@ -242,40 +142,17 @@
     LEA AX,STR4                     ; "AFTER SORT, THE %d NUMBERS ARE:"
     CALL PRINTF
 
-    LEA AX,NUMARRAY
-                                    ; BX 明确未改变,故不重复赋值
+    ; ============= 10 进制 输出 排序后数组
+    LEA AX,NUMARRAY                                 ; BX 明确未改变,故不重复赋值
     CALL PROC_PRINT_ARRAY
 
 
-
+    ; ======== 结束
 
 .EXIT 0
-; print sp
-printsp:
-    push ax
-    lea ax,strspl
-    call PROC_PRINT_STRING
-    mov ax,sp
-    call PROC_PRINT_NUM
-    lea ax,strspr
-    call PROC_PRINT_STRING
-    pop ax
-    ret
 
 
-; print bx
-printbx:
-    push ax
-    lea ax,strbxl
-    call PROC_PRINT_STRING
-    mov ax,bx
-    call PROC_PRINT_NUM
-    lea ax,strbxr
-    call PROC_PRINT_STRING
-    pop ax
-    ret
-
-
+; 该子程序有已知 BUG ，不可使用跨段区 堆栈传参
 ; 实现类 c 语言 printf 的功能
 ; 使用 CDCEL 函数调用约定 
 PRINTF:

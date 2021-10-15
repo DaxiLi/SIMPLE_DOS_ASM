@@ -185,7 +185,7 @@ STR_ZH_CN_LENGTH WORD ($ - STR_ZH_CN)
     FONT_COLOR equ GREEN
     BACKGROUND_COLOR equ BLACK
 
-    call SETDISPLAYMOD
+    call SETDISPLAYMOD                  ; 设置显示模式
 
     MOV CX,10
     LEA AX,[STR_ZH_CN]
@@ -347,42 +347,6 @@ mov dx,0
 int 10h
 ret
 
-
-
-; 将 AX 中的数据 以 16 进制输出
-PRINT_NUM_HEX:
-        PUSH BX 
-        PUSH CX 
-        PUSH DX 
-
-        MOV BX,AX 
-        MOV AH,02H      
-        MOV CX,0404H                    ; 高位作计数 低位作 ROL 指令的 ORDER2
-        PNH_STARTROL:
-                ROL BX,CL               ; 左移 4 位
-                TEST BX,0FH             ; 测试低 4 位
-                JNZ PNH_STARTOUT        ; 低 4 位 != 0 跳转至输出
-                DEC CH                  ; 手动计数 -1
-                TEST CH,CH              
-                JNZ PNH_STARTROL        ; if CH > 0 continue else break
-                INC CH                  ; 没有跳转,输入为 0 ,需要输出一次 , 计数器 +1
-        PNH_STARTOUT:
-                MOV DX,0FH              ; 
-                AND DX,BX               ; 低 4 位移入 DL 
-                ADD DX,'0'              ; 加上 '0'
-                CMP DX,':'              ; ':' asiic 是 '9' + 1
-                JB PNH_IS_NUM           ; 
-                ADD DX,7D
-        PNH_IS_NUM:
-                INT 21H
-                ROL BX,CL
-                DEC CH 
-                TEST CH,CH
-                JNZ PNH_STARTOUT
-        POP DX 
-        POP CX 
-        POP BX
-        RET
 
 
 
